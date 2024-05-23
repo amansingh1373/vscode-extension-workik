@@ -12,12 +12,7 @@
   "activationEvents": [],
   "main": "./extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "chat-extension.helloWorld",
-        "title": "Hello World"
-      }
-    ],
+    "commands": [],
     "viewsContainers": {
       "activitybar": [
         {
@@ -27,14 +22,15 @@
         }
       ]
     },
-    "views":{
-        "chatExtension": [
-          {
-            "id": "chat-extension",
-            "name": "Chat Extension"
-          }
-        ]
-      }
+    "views": {
+      "chatExtension": [
+        {
+          "id": "chatExtension",
+          "type": "webview",
+          "name": "Chat Extension"
+        }
+      ]
+    }
   },
   "scripts": {
     "lint": "eslint .",
@@ -51,6 +47,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "path": "^0.12.7",
     "vscode": "^1.1.37"
   }
 }
