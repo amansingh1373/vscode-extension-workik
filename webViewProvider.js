@@ -19,8 +19,8 @@ class MyWebviewViewProvider {
 
     webviewView.webview.onDidReceiveMessage(message => {
       switch (message.command) {
-        case 'alert':
-          vscode.window.showInformationMessage(message.text);
+        case 'refresh':
+        vscode.commands.executeCommand('chatExtension.refreshExtension')
           break;
       }
     });
@@ -82,6 +82,7 @@ class MyWebviewViewProvider {
             .chat-container {
                 flex: 1;
                 overflow: auto;
+                text-align: center;
             }
     
             .chat-footer {
@@ -171,16 +172,50 @@ class MyWebviewViewProvider {
                 border-radius: 50%;
                 object-fit: cover;
             }
-    
+            
+            .overlay-container {
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 100%;
+                background-color: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+                z-index: 10;
+                visibility: hidden;
+            }
+        
+            .refresh {
+                padding: 2rem 4rem 2rem 4rem;
+                border: none;
+                background-color: white;
+                color: #161b1f;
+                border-radius: 5px;
+                font-size: 4rem;
+                display:flex;
+                align-items: center;
+                gap: 4rem;
+            }
+
+            .refresh:hover {
+                background-color: #161b1f;
+                color: white;
+                box-shadow: 5px 5px 10px #161b1f;
+            }
             /*common styling*/
     
             .common-padding {
                 padding: 2rem 4rem 2rem 4rem;
+                margin-top: 3rem;
             }
     
             .partition-style {
-                background-color: #070A0D;
-                box-shadow: 5px 5px 10px #161b1f, -2px -2px 2px rgba(255, 255, 255, 0.275);
+                background-color: inherit;
+                // box-shadow: -3px -3px 3px rgba(255, 255, 255, 0.125);
+                box-shadow:  1px 1px 1px #1c232e,-1px -1px 1px #262f3e;
                 border-radius: 10px;
                 padding: 3rem;
                 margin: 1rem;
@@ -212,7 +247,7 @@ class MyWebviewViewProvider {
         </style>
     </head>
     <body>
-        <div class="chat-box common-padding">
+        <div class="chat-box">
             <div class="chat-header partition-style ">
                 <div class="logo">
                     <span class="material-symbols-outlined  font-size-icon">
@@ -223,26 +258,10 @@ class MyWebviewViewProvider {
                     Chat App
                 </div>
             </div>
-            <div class="chat-container partition-style">
-                <div class="chat-human-wrapper">
-                    <div class="chat-human chat">
-                        Lorem, ipsum dolor sit amet consectetur adipisicing elit. Aliquid, unde?
-                    </div>
-                    <div class="avatar">
-                        <img class="profile-image" src=${imageSrc1} alt="avatar" />
-                    </div>
-                </div>
-                <div class="chat-AI-wrapper">
-                    <div class="avatar">
-                        <img class="profile-image" src=${imageSrc2} alt="avatar" />
-                    </div>
-                    <div class="chat-AI chat">
-                       Lorem ipsum dolor sit amet consectetur adipisicing elit. Reprehenderit ipsum at recusandae dicta eveniet amet esse? Perferendis beatae corrupti eligendi?
-                    </div>
-                </div>
-                
+            <div class="chat-container common-padding">
+                Enter Your Query
             </div>
-            <div class="chat-footer partition-style padding-chat-box">
+            <div class="chat-footer partition-style padding-chat-box box-shadow-chat-footer">
                 <div class="chat-input-wrapper">
                     <input class="chat-input" size="1" type="text">
                     <label class="chat-button file-label" for="file">
@@ -251,17 +270,114 @@ class MyWebviewViewProvider {
                         </span>
                     </label>
                     <input id="file" class="chat-button file" type="file">
-                    <button class="chat-button submit"> 
+                    <button class="chat-button submit" onclick="clickHandler()"> 
                         <span class="material-symbols-outlined font-size-icon2 ">
                             send
                         </span>
                     </button>
                 </div>
             </div>
+            <div class="overlay-container">
+                <button class="refresh">
+                    <span class="material-symbols-outlined">
+                        refresh 
+                    </span>
+                    <div>refresh</div>
+                </button>
+                <p>Error💀</p>
+            </div>    
         </div>
     </body>
     <script>
+    const API_URL = 'http://localhost:3000/';
+    const chatData = "";
+    const vscode = acquireVsCodeApi();
+
+    document.addEventListener('keydown', function(event) {
+        const input = document.querySelector('.chat-input');
+        if (event.key === 'Enter' && input === document.activeElement) {
+            document.querySelector('.submit').click();
+        }
+    });
     
+    document.querySelector('.refresh').addEventListener('click', () => {
+        vscode.postMessage({
+            command: 'refresh'
+        });
+    });
+
+
+    function insertChatAIWrapper(imageSrc,data) {
+        const chatAIWrapper = document.createElement('div');
+        chatAIWrapper.classList.add('chat-AI-wrapper');
+
+        const avatarDiv = document.createElement('div');
+        avatarDiv.classList.add('avatar');
+
+        const img = document.createElement('img');
+        img.classList.add('profile-image');
+        img.src = imageSrc; // Keep the image source the same
+        img.alt = 'avatar';
+
+        avatarDiv.appendChild(img);
+
+        const chatAIDiv = document.createElement('div');
+        chatAIDiv.classList.add('chat-AI', 'chat');
+        chatAIDiv.textContent = data;
+
+        chatAIWrapper.appendChild(avatarDiv);
+        chatAIWrapper.appendChild(chatAIDiv);
+
+        const chatContainer = document.querySelector('.chat-container');
+        chatContainer.appendChild(chatAIWrapper);
+    }
+
+    function insertChatHumanWrapper(imageSrc, data) {
+        const chatHumanWrapper = document.createElement('div');
+        chatHumanWrapper.classList.add('chat-human-wrapper');
+    
+        const chatHumanDiv = document.createElement('div');
+        chatHumanDiv.classList.add('chat-human', 'chat');
+        chatHumanDiv.textContent = data;
+    
+        const avatarDiv = document.createElement('div');
+        avatarDiv.classList.add('avatar');
+    
+        const img = document.createElement('img');
+        img.classList.add('profile-image');
+        img.src = imageSrc;
+        img.alt = 'avatar';
+    
+        avatarDiv.appendChild(img);
+    
+        chatHumanWrapper.appendChild(chatHumanDiv);
+        chatHumanWrapper.appendChild(avatarDiv);
+    
+        const chatContainer = document.querySelector('.chat-container');
+        chatContainer.appendChild(chatHumanWrapper);
+    }
+    
+
+    function clickHandler() {
+        const input = document.querySelector('.chat-input');
+        const inputData = input.value;
+        input.value = "";
+        if(inputData === '') {
+            return;
+        }
+        insertChatHumanWrapper("${imageSrc1}",inputData);
+        const promise = fetch(API_URL);
+        promise
+        .then((res) => res.text())
+        .then((data) => {
+            insertChatAIWrapper("${imageSrc2}",data);
+        })
+        .catch((error) => {
+            const overlayContainer = document.querySelector('.overlay-container');
+            overlayContainer.style.visibility = 'visible';
+        })
+    }
+
     </script>
     </html>`;
   }

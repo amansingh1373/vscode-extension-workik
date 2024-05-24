@@ -5,7 +5,11 @@ const MyWebviewViewProvider = require('./webViewProvider.js');
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
-  	console.log('Congratulations, your extension "myfirstextension" is now active!');
+  	console.log('extension activated');
+	let disposable = vscode.commands.registerCommand('chatExtension.refreshExtension', () => {
+        vscode.commands.executeCommand('workbench.action.reloadWindow'); // Reload the window to refresh the extension
+    });
+	context.subscriptions.push(disposable);
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(
 			'chatExtension',
