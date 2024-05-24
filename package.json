@@ -9,10 +9,16 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+  ],
   "main": "./extension.js",
   "contributes": {
-    "commands": [],
+    "commands": [
+      {
+        "command": "chatExtension.refreshExtension",
+        "title" : "Refresh Extension"
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
